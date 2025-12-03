@@ -1,0 +1,12 @@
+# =====================================
+# Accelerate 配置文件
+# 用于 Qwen3-8B LoRA 训练（2 进程方案）
+# 环境: V100 32GB × 4, 2 进程（每个进程使用 2 张卡）
+# =====================================
+
+compute_environment: LOCAL_MACHINE
+distributed_type: DEEPSPEED
+num_processes: 4          # 进程数
+num_machines: 1          # 机器数
+machine_rank: 0          # 机器排名
+use_cpu: false           # 不使用 CPU(必须)

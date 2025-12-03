@@ -1,0 +1,80 @@
+# Git
+.git
+.gitignore
+
+# Python 缓存
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info
+*.egg
+.eggs
+dist
+build
+
+# 虚拟环境
+venv
+.venv
+env
+.env.local
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# 模型和数据文件
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.onnx
+
+# 输出目录
+outputs/
+checkpoints/
+logs/
+runs/
+wandb/
+
+# HuggingFace 缓存
+.cache/
+*.lock
+
+# 大型数据文件
+data/
+*.parquet
+*.arrow
+*.jsonl
+*.csv
+
+# 文档
+docs/
+*.md
+!README.md
+
+# 测试
+tests/
+test_*.py
+*_test.py
+.pytest_cache
+.coverage
+htmlcov
+
+# Docker 相关（避免嵌套）
+docker/
+docker-compose.yaml
+Dockerfile-*
+
+# 其他
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+node_modules/
+

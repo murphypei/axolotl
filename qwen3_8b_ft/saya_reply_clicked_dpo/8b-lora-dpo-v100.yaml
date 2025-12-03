@@ -1,0 +1,137 @@
+# =====================================
+# Qwen3-8B LoRA 训练配置
+# 环境: V100 32GB × 4, DeepSpeed Zero2 + CPU Offload Optimizer
+# LoRA Rank: 32 (显存优化配置，rank=16 时已需要 27GB)
+# =====================================
+
+rl: dpo
+base_model: outputs/qwen3-8b-lora-chat/bigolive_human_data_2025-12-05/merged
+trust_remote_code: true
+strict: false
+
+# =====================================
+# LoRA 配置
+# =====================================
+adapter: lora
+lora_r: 32
+lora_alpha: 64
+lora_dropout: 0.05
+lora_target_linear: true
+
+# =====================================
+# Chat Template
+# =====================================
+chat_template: qwen3
+
+# =====================================
+# 数据集配置
+# =====================================
+streaming: true
+datasets:
+  - path: /mnt/cephfs2/peichao/code/chatdata-pipeline/data/saya_recom_reply/output/dpo_dataset.jsonl
+    type: chat_template.default
+    field_messages: "messages"
+    field_chosen: "chosen"
+    field_rejected: "rejected"
+    message_property_mappings:
+      role: role
+      content: content
+    roles:
+      user: ["user"]
+      assistant: ["assistant"]
+      system: ["system"]
+
+output_dir: ./outputs/qwen3-8b-lora-dpo/saya_recom_reply_data-2025-12-17
+dataset_prepared_path: last_run_prepared
+val_set_size: 0
+
+# =====================================
+# 序列配置
+# =====================================
+sequence_len: 4096
+# sample_packing: true
+# eval_sample_packing: true
+
+# =====================================
+# 批次配置
+# =====================================
+# 有效 batch_size = micro_batch_size × gradient_accumulation_steps × num_gpus
+# 注意：DeepSpeed 会自动管理这些参数，但这里可以设置初始值
+micro_batch_size: 1
+gradient_accumulation_steps: 8
+num_epochs: 1
+
+# =====================================
+# 优化器
+# =====================================
+# 注意：DeepSpeed 会接管优化器
+# - 如果 deepspeed json 中指定了 optimizer，以 json 为准
+# - 如果没指定，使用这里的配置
+# - 使用 CPU offload 时，建议让 DeepSpeed 管理优化器
+optimizer: adamw_torch
+lr_scheduler: cosine
+learning_rate: 2e-4
+warmup_ratio: 0.1
+weight_decay: 0.0
+
+# =====================================
+# V100 兼容配置
+# =====================================
+fp16: true
+bf16: false
+tf32: false
+flash_attention: false
+
+# DeepSpeed 会自动处理 gradient checkpointing
+gradient_checkpointing: true
+gradient_checkpointing_kwargs:
+  use_reentrant: false
+
+# =====================================
+# DeepSpeed 配置
+# =====================================
+deepspeed: deepspeed_configs/zero2_v100.json
+
+# =====================================
+# 日志和保存
+# =====================================
+logging_steps: 10
+saves_per_epoch: 100
+evals_per_epoch: 100
+save_total_limit: 3
+
+# =====================================
+# Wandb 配置
+# =====================================
+wandb_project: qwen3-8b-lora-dpo
+wandb_name: saya_recom_reply_data-2025-12-17
+wandb_mode: online
+
+# =====================================
+# 特殊 tokens
+# =====================================
+special_tokens:
+  # eos_token: "<|im_end|>"
+
+# =====================================
+# 数据加载
+# =====================================
+dataloader_num_workers: 8
+dataloader_pin_memory: true
+
+# 随机种子
+seed: 8341
+
+# =====================================
+# 模型配置（V100 兼容性优化）
+# =====================================
+model:
+  # 强制使用传统eager attention，彻底规避SDPA的CUDA参数错误
+  attn_implementation: "eager"
+  # Qwen3多卡训练必须指定，防止层拆分导致的设备不匹配
+  _no_split_modules: ["Qwen3DecoderLayer"]
+  # 显式关闭flash attention（和外层flash_attention配置双保险）
+  flash_attn: false
+  # V100适配：关闭不必要的优化，提升稳定性
+  torch_dtype: float16  # 匹配你的fp16配置
+  use_cache: false  # 训练阶段禁用cache，减少显存占用

@@ -1,0 +1,123 @@
+# =====================================
+# Qwen3-8B LoRA 训练配置
+# 环境: V100 32GB × 4, DDP 模式
+# =====================================
+
+base_model: Qwen/Qwen3-8B
+trust_remote_code: true
+strict: false
+
+# =====================================
+# LoRA 配置
+# =====================================
+adapter: lora
+lora_r: 16
+lora_alpha: 32
+lora_dropout: 0.05
+lora_target_linear: true
+
+# =====================================
+# Chat Template
+# =====================================
+chat_template: qwen3
+
+# =====================================
+# 数据集配置
+# =====================================
+streaming: true
+datasets:
+  # - path: HuggingFaceH4/ultrachat_200k
+  #   type: chat_template
+  #   split: train_sft
+  #   roles_to_train: ["assistant"]
+  #   train_on_eos: turn
+  - path: /mnt/cephfs2/peichao/code/chatdata-pipeline/data/bigolive_human_20251205/output/2025-12-15-sft-dataset.jsonl
+    type: chat_template
+    roles_to_train: ["assistant"]
+    train_on_eos: turn
+
+output_dir: ./outputs/qwen3-8b-lora-chat/bigolive_human_data_2025-12-05
+dataset_prepared_path: last_run_prepared
+val_set_size: 0
+
+# =====================================
+# 序列配置
+# =====================================
+sequence_len: 4096
+sample_packing: true
+eval_sample_packing: true
+
+# =====================================
+# 批次配置
+# =====================================
+# 有效 batch_size = micro_batch_size × gradient_accumulation_steps × num_gpus
+micro_batch_size: 1
+gradient_accumulation_steps: 8
+num_epochs: 1
+
+# =====================================
+# 优化器
+# =====================================
+optimizer: adamw_torch
+lr_scheduler: cosine
+learning_rate: 2e-4
+warmup_ratio: 0.1
+weight_decay: 0.0
+
+# =====================================
+# V100 兼容配置
+# =====================================
+fp16: true
+bf16: false
+tf32: false
+flash_attention: false
+
+# 显存优化
+gradient_checkpointing: true
+gradient_checkpointing_kwargs:
+  use_reentrant: false
+
+# =====================================
+# 分布式训练配置
+# =====================================
+ddp: true
+ddp_timeout: 7200
+ddp_find_unused_parameters: false
+
+# Accelerate 配置
+accelerator_config:
+  dispatch_batches: null
+  split_batches: false
+  even_batches: true
+
+# =====================================
+# 日志和保存
+# =====================================
+logging_steps: 10
+saves_per_epoch: 100
+evals_per_epoch: 100
+save_total_limit: 3
+
+# =====================================
+# Wandb 配置
+# =====================================
+wandb_project: qwen3-8b-lora-chat
+wandb_name: bigolive_human-2025-12-05
+wandb_mode: online
+
+# =====================================
+# 特殊 tokens
+# =====================================
+special_tokens:
+  # eos_token: "<|im_end|>"
+
+# =====================================
+# 其他优化
+# =====================================
+# 数据加载
+dataloader_num_workers: 8
+dataloader_pin_memory: true
+
+# 随机种子
+seed: 8341
+

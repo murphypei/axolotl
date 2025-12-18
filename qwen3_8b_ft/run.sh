@@ -32,7 +32,7 @@ axolotl merge-lora examples/qwen3/8b-lora-chat-v100.yaml \
  --lora-model-dir ./outputs/qwen3-8b-lora-chat/bigolive_human_data_2025-12-05/checkpoint-3213
 
 
-CUDA_VISIBLE_DEVICES=4,5,6,7 axolotl \
+CUDA_VISIBLE_DEVICES=0，4,5,6,7 axolotl \
     train examples/qwen3/8b-lora-dpo-v100.yaml \
     --launcher accelerate -- --config_file=accelerate_configs/v100_config.yml \
     2>&1 | tee dpo_train.log

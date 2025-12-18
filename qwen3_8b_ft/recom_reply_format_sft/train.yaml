@@ -1,0 +1,119 @@
+# =====================================
+# Qwen3-8B LoRA 训练配置
+# 环境: V100 32GB × 4, DeepSpeed Zero2 + CPU Offload Optimizer
+# LoRA Rank: 32 (显存优化配置，rank=16 时已需要 27GB)
+# =====================================
+
+base_model: Qwen/Qwen3-8B
+trust_remote_code: true
+strict: false
+
+# =====================================
+# LoRA 配置
+# =====================================
+adapter: lora
+lora_r: 32
+lora_alpha: 64
+lora_dropout: 0.05
+lora_target_linear: true
+
+# =====================================
+# Chat Template
+# =====================================
+chat_template: qwen3
+
+# =====================================
+# 数据集配置
+# =====================================
+streaming: true
+datasets:
+  - path: qwen3_8b_ft/recom_reply_format_sft/data/recom_reply_turn_ge6_2025-11-25/train.jsonl
+    type: chat_template
+    roles_to_train: ["assistant"]
+    train_on_eos: turn
+
+output_dir: outputs/qwen3_8b_ft/recom_reply_format_sft/2025-12-19/
+dataset_prepared_path: last_run_prepared
+val_set_size: 0.05
+
+# =====================================
+# 序列配置
+# =====================================
+sequence_len: 4096
+sample_packing: false
+eval_sample_packing: false
+
+# =====================================
+# 批次配置
+# =====================================
+# 有效 batch_size = micro_batch_size × gradient_accumulation_steps × num_gpus
+# 注意：DeepSpeed 会自动管理这些参数，但这里可以设置初始值
+micro_batch_size: 1
+gradient_accumulation_steps: 8
+num_epochs: 3
+
+# =====================================
+# 优化器
+# =====================================
+# 注意：DeepSpeed 会接管优化器
+# - 如果 deepspeed json 中指定了 optimizer，以 json 为准
+# - 如果没指定，使用这里的配置
+# - 使用 CPU offload 时，建议让 DeepSpeed 管理优化器
+optimizer: adamw_torch
+lr_scheduler: cosine
+learning_rate: 1e-4
+warmup_ratio: 0.1
+weight_decay: 0.0
+
+# =====================================
+# V100 兼容配置
+# =====================================
+fp16: true
+bf16: false
+tf32: false
+flash_attention: false
+eager_attention: true
+model:
+  # Qwen3多卡训练必须指定，防止层拆分导致的设备不匹配
+  _no_split_modules: ["Qwen3DecoderLayer"]
+
+
+# DeepSpeed 会自动处理 gradient checkpointing
+gradient_checkpointing: true
+gradient_checkpointing_kwargs:
+  use_reentrant: false
+
+# =====================================
+# DeepSpeed 配置
+# =====================================
+deepspeed: qwen3_8b_ft/v100_ds_zero2_config.json
+
+# =====================================
+# 日志和保存
+# =====================================
+logging_steps: 10
+evals_per_epoch: 5
+saves_per_epoch: 5
+save_total_limit: 5
+
+# =====================================
+# Wandb 配置
+# =====================================
+wandb_project: qwen3-8b-ft
+wandb_name: recom_reply_format_sft-2025-12-19
+wandb_mode: online
+
+# =====================================
+# 特殊 tokens
+# =====================================
+special_tokens:
+  # eos_token: "<|im_end|>"
+
+# =====================================
+# 数据加载
+# =====================================
+dataloader_num_workers: 8
+dataloader_pin_memory: true
+
+# 随机种子
+seed: 8341

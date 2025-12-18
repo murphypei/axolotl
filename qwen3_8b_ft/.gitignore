@@ -1,0 +1,3 @@
+*.jsonl
+gemini_client/gemini_config.json
+.env

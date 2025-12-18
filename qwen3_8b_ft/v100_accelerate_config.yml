@@ -6,7 +6,7 @@
 
 compute_environment: LOCAL_MACHINE
 distributed_type: DEEPSPEED
-num_processes: 4          # 进程数
+num_processes: 8          # 进程数
 num_machines: 1          # 机器数
 machine_rank: 0          # 机器排名
 use_cpu: false           # 不使用 CPU(必须)
